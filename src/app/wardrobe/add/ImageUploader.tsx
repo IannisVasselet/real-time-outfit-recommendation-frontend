@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import Image from 'next/image';
 
 interface ImageUploaderProps {
-    onImageUpload: (file: File) => void;
+    onImageUpload: (file: File, previewUrl: string) => void;
     isLoading: boolean;
 }
 
@@ -15,10 +15,11 @@ export default function ImageUploader({ onImageUpload, isLoading }: ImageUploade
         if (file) {
             const reader = new FileReader();
             reader.onloadend = () => {
-                setPreview(reader.result as string);
+                const base64String = reader.result as string;
+                setPreview(base64String);
+                onImageUpload(file, base64String);
             };
             reader.readAsDataURL(file);
-            onImageUpload(file);
         }
     };
 
@@ -32,10 +33,11 @@ export default function ImageUploader({ onImageUpload, isLoading }: ImageUploade
         if (file) {
             const reader = new FileReader();
             reader.onloadend = () => {
-                setPreview(reader.result as string);
+                const base64String = reader.result as string;
+                setPreview(base64String);
+                onImageUpload(file, base64String);
             };
             reader.readAsDataURL(file);
-            onImageUpload(file);
         }
     };
 

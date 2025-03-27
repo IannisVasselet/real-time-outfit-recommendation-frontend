@@ -9,7 +9,7 @@ import { analyzeImage, getCategories, addClothing, CategoryOption, AnalysisResul
 export default function AddClothing() {
     const router = useRouter();
     const [file, setFile] = useState<File | null>(null);
-    const [imageUrl, setImageUrl] = useState<string>('');
+    const [imagePreview, setImagePreview] = useState<string>('');
     const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
     const [categories, setCategories] = useState<CategoryOption[]>([]);
     const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
@@ -31,19 +31,15 @@ export default function AddClothing() {
         fetchCategories();
     }, []);
 
-    const handleImageUpload = async (uploadedFile: File) => {
+    const handleImageUpload = async (uploadedFile: File, previewUrl: string) => {
         setFile(uploadedFile);
+        setImagePreview(previewUrl);
         setIsAnalyzing(true);
         setError(null);
 
         try {
             // Analyse de l'image
             const result = await analyzeImage(uploadedFile);
-
-            // Création d'une URL pour l'image
-            const temporaryUrl = URL.createObjectURL(uploadedFile);
-            setImageUrl(temporaryUrl);
-
             setAnalysisResult(result);
         } catch (err) {
             setError('Erreur lors de l\'analyse de l\'image');
@@ -91,7 +87,7 @@ export default function AddClothing() {
                                 categories={categories}
                                 onSubmit={handleSubmit}
                                 isSubmitting={isSubmitting}
-                                imageUrl={imageUrl}
+                                imageUrl={imagePreview}
                             />
                         </>
                     )}

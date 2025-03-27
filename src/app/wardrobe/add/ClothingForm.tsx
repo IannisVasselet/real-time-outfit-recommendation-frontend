@@ -19,7 +19,7 @@ export default function ClothingForm({
     const [formData, setFormData] = useState<ClothingFormData>({
         name: '',
         description: '',
-        image_url: imageUrl,
+        image_url: imageUrl || '',
         category_id: 0,
         color: '',
         pattern: '',
