@@ -21,7 +21,7 @@ export default function Navbar() {
     { name: 'Accueil', path: '/' },
     { name: 'Ma Garde-robe', path: '/wardrobe' },
     { name: 'Mes Tenues', path: '/outfits' },
-    { name: 'Recommandations', path: '/recommendations', disabled: true },
+    { name: 'Recommandations', path: '/recommendations'},
     { name: 'Profil', path: '/profile', disabled: true },
     { name: 'À propos', path: '/about' },
   ];
