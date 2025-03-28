@@ -1,3 +1,13 @@
+import { Outfit } from "../outfits/api";
+
+export interface RecommendationRequest {
+  weather?: string;
+  temperature?: number;
+  occasion?: string;
+  preferred_styles?: string[];
+  preferred_colors?: string[];
+  excluded_clothing_ids?: number[];
+}
 export interface WeatherInfo {
   condition: string;
   temperature: number;
@@ -9,6 +19,57 @@ export interface GeolocationPosition {
   latitude: number;
   longitude: number;
 }
+
+export const getRecommendations = async (
+  params: RecommendationRequest
+): Promise<Outfit[]> => {
+  const queryParams = new URLSearchParams();
+
+  if (params.weather) {
+    queryParams.append("weather", params.weather);
+  }
+
+  if (params.temperature !== undefined) {
+    queryParams.append("temperature", params.temperature.toString());
+  }
+
+  if (params.occasion) {
+    queryParams.append("occasion", params.occasion);
+  }
+
+  if (params.preferred_styles && params.preferred_styles.length > 0) {
+    queryParams.append("preferred_styles", params.preferred_styles.join(","));
+  }
+
+  if (params.preferred_colors && params.preferred_colors.length > 0) {
+    queryParams.append("preferred_colors", params.preferred_colors.join(","));
+  }
+
+  if (params.excluded_clothing_ids && params.excluded_clothing_ids.length > 0) {
+    queryParams.append(
+      "excluded_clothing_ids",
+      params.excluded_clothing_ids.join(",")
+    );
+  }
+
+  const url = `${
+    process.env.NEXT_PUBLIC_API_URL
+  }/api/v1/recommendations/?${queryParams.toString()}`;
+
+  console.log("Requête de recommandations vers:", url);
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("Erreur API:", errorText);
+    throw new Error(
+      `Erreur lors de la récupération des recommandations: ${response.status}`
+    );
+  }
+
+  return response.json();
+};
 
 // Nouvelle fonction pour obtenir la position de l'utilisateur
 export const getUserLocation = (): Promise<GeolocationPosition> => {
