@@ -134,6 +134,11 @@ export default function RecommendationsPage() {
         }
     };
 
+    // Fonction pour éliminer les doublons dans les recommandations
+    const uniqueRecommendations = Array.from(
+        new Map(recommendations.map(outfit => [outfit.id, outfit])).values()
+    );
+
     return (
         <main className="container mx-auto px-4 py-8">
             <h1 className="text-3xl font-bold mb-6">Recommandations de tenues</h1>
@@ -182,7 +187,7 @@ export default function RecommendationsPage() {
                 <>
                     <h2 className="text-xl font-semibold mb-4">Tenues recommandées</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-                        {recommendations.map((outfit) => (
+                        {uniqueRecommendations.map((outfit) => (
                             <RecommendationCard
                                 key={outfit.id}
                                 outfit={outfit}
