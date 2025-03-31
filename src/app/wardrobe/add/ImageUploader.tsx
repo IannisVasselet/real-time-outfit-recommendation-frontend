@@ -2,11 +2,12 @@ import React, { useRef, useState } from 'react';
 import Image from 'next/image';
 
 interface ImageUploaderProps {
-    onImageUpload: (file: File, previewUrl: string) => void;
-    isLoading: boolean;
+    onImageUpload: (file: File, previewUrl: string, serverUrl?: string) => void;
+    imagePreview: string;
+    isUploading: boolean;
 }
 
-export default function ImageUploader({ onImageUpload, isLoading }: ImageUploaderProps) {
+export default function ImageUploader({ onImageUpload, isUploading: isLoading }: ImageUploaderProps) {
     const [preview, setPreview] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 

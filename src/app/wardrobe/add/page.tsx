@@ -1,15 +1,23 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { getCategories } from '../api';
+import { analyzeImage, AnalysisResult, addClothing, ClothingFormData } from './api';
 import ImageUploader from './ImageUploader';
 import ClothingForm from './ClothingForm';
-import { analyzeImage, getCategories, addClothing, CategoryOption, AnalysisResult, ClothingFormData } from './api';
+
+interface CategoryOption {
+    id: number;
+    name: string;
+}
 
 export default function AddClothing() {
     const router = useRouter();
     const [file, setFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string>('');
+    const [imageUrl, setImageUrl] = useState<string>('');
     const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
     const [categories, setCategories] = useState<CategoryOption[]>([]);
     const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
@@ -38,9 +46,14 @@ export default function AddClothing() {
         setError(null);
 
         try {
-            // Analyse de l'image
+            // Analyse directe de l'image via l'endpoint existant
             const result = await analyzeImage(uploadedFile);
             setAnalysisResult(result);
+
+            // Utiliser le previewUrl comme URL de l'image temporairement
+            setImageUrl(previewUrl);
+
+            console.log("Résultat de l'analyse:", result);
         } catch (err) {
             setError('Erreur lors de l\'analyse de l\'image');
             console.error(err);
@@ -53,8 +66,20 @@ export default function AddClothing() {
         setIsSubmitting(true);
         setError(null);
 
+        // Vérifiez si imageUrl est défini
+        if (!imageUrl) {
+            setError('L\'URL de l\'image est manquante. Veuillez réessayer de télécharger l\'image.');
+            setIsSubmitting(false);
+            return;
+        }
         try {
-            await addClothing(data);
+            // Ajouter l'URL de l'image aux données
+            const clothingData = {
+                ...data,
+                image_url: imageUrl
+            };
+
+            await addClothing(clothingData);
             router.push('/wardrobe');
         } catch (err: any) {
             setError(err.message || 'Erreur lors de l\'ajout du vêtement');
@@ -67,7 +92,15 @@ export default function AddClothing() {
     return (
         <main className="container mx-auto px-4 py-8">
             <div className="max-w-4xl mx-auto">
-                <h1 className="text-3xl font-bold mb-6">Ajouter un vêtement</h1>
+                <div className="mb-6">
+                    <Link href="/wardrobe" className="inline-flex items-center text-blue-600 hover:text-blue-800">
+                        <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                        </svg>
+                        Retour à la garde-robe
+                    </Link>
+                    <h1 className="text-3xl font-bold mt-2">Ajouter un nouveau vêtement</h1>
+                </div>
 
                 {error && (
                     <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -75,21 +108,21 @@ export default function AddClothing() {
                     </div>
                 )}
 
-                <div className="bg-white shadow-md rounded-lg p-6">
-                    <h2 className="text-xl font-semibold mb-4">Étape 1: Téléchargez une photo du vêtement</h2>
-                    <ImageUploader onImageUpload={handleImageUpload} isLoading={isAnalyzing} />
+                <div className="space-y-6">
+                    <ImageUploader
+                        onImageUpload={handleImageUpload}
+                        imagePreview={imagePreview}
+                        isUploading={isAnalyzing}
+                    />
 
-                    {file && analysisResult && !isAnalyzing && (
-                        <>
-                            <h2 className="text-xl font-semibold mb-4">Étape 2: Complétez les informations</h2>
-                            <ClothingForm
-                                analysisResult={analysisResult}
-                                categories={categories}
-                                onSubmit={handleSubmit}
-                                isSubmitting={isSubmitting}
-                                imageUrl={imagePreview}
-                            />
-                        </>
+                    {file && (
+                        <ClothingForm
+                            categories={categories}
+                            analysisResult={analysisResult}
+                            isAnalyzing={isAnalyzing}
+                            onSubmit={handleSubmit}
+                            imageUrl={imageUrl}
+                        />
                     )}
                 </div>
             </div>

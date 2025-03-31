@@ -27,7 +27,42 @@ export default function ClothingForm({
         season: 'toutes saisons',
     });
 
-    // Code existant pour mettre à jour le formulaire avec les résultats de l'analyse...
+    useEffect(() => {
+        if (analysisResult && analysisResult.analysis) {
+            // Mettre à jour les champs du formulaire avec les résultats de l'analyse
+            setFormData(prevData => ({
+                ...prevData,
+                // Mettre à jour l'URL de l'image si ce n'est pas déjà fait
+                image_url: imageUrl || prevData.image_url,
+
+                // Appliquer les caractéristiques détectées
+                color: analysisResult.analysis.color || prevData.color,
+                style: analysisResult.analysis.predicted_style || prevData.style,
+                season: analysisResult.analysis.predicted_season || prevData.season,
+
+                // Suggérer un nom basé sur le type prédit et la couleur
+                name: !prevData.name ?
+                    `${analysisResult.analysis.predicted_type} ${analysisResult.analysis.color}`.charAt(0).toUpperCase() +
+                    `${analysisResult.analysis.predicted_type} ${analysisResult.analysis.color}`.slice(1) :
+                    prevData.name,
+            }));
+
+            // Trouver la catégorie correspondante au type de vêtement prédit
+            if (analysisResult.analysis.predicted_type) {
+                const matchingCategory = categories.find(cat =>
+                    cat.name.toLowerCase().includes(analysisResult.analysis.predicted_type.toLowerCase())
+                );
+
+                if (matchingCategory) {
+                    setFormData(prevData => ({
+                        ...prevData,
+                        category_id: matchingCategory.id,
+                    }));
+                }
+            }
+        }
+    }, [analysisResult, categories, imageUrl]);
+
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -55,6 +90,14 @@ export default function ClothingForm({
 
     return (
         <form onSubmit={handleSubmit} className="space-y-8">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                Informations du vêtement
+                {analysisResult && (
+                    <span className="ml-2 text-sm font-normal text-green-600">
+                        Détection automatique appliquée
+                    </span>
+                )}
+            </h2>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div className="space-y-2">
                     <Label htmlFor="name" required>Nom du vêtement</Label>
@@ -119,6 +162,11 @@ export default function ClothingForm({
                             style={{ backgroundColor: formData.color || '#ffffff' }}
                         ></div>
                     </div>
+                    {analysisResult && analysisResult.analysis && (
+                        <p className="mt-1 text-xs text-gray-500">
+                            Couleur détectée: {analysisResult.analysis.color}
+                        </p>
+                    )}
                 </div>
 
                 <div className="space-y-2">
@@ -161,6 +209,11 @@ export default function ClothingForm({
                             </option>
                         ))}
                     </select>
+                    {analysisResult && analysisResult.analysis && (
+                        <p className="mt-1 text-xs text-gray-500">
+                            Style détecté: {analysisResult.analysis.predicted_style}
+                        </p>
+                    )}
                 </div>
 
                 <div className="space-y-2">
@@ -188,6 +241,11 @@ export default function ClothingForm({
                             </option>
                         ))}
                     </select>
+                    {analysisResult && analysisResult.analysis && (
+                        <p className="mt-1 text-xs text-gray-500">
+                            Saison détectée: {analysisResult.analysis.predicted_season}
+                        </p>
+                    )}
                 </div>
             </div>
 

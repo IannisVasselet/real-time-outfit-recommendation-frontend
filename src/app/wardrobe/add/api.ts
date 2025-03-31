@@ -6,15 +6,13 @@ export interface CategoryOption {
 }
 
 export interface AnalysisResult {
-  embeddings: number[];
-  similar_items: any[];
-  metadata: {
-    category?: string;
-    style?: string;
-    color?: string;
-    pattern?: string;
-    season?: string;
+  analysis: {
+    color: string;
+    predicted_type: string;
+    predicted_season: string;
+    predicted_style: string;
   };
+  similar_items: any[];
 }
 
 export interface ClothingFormData {
@@ -73,8 +71,28 @@ export async function addClothing(
   );
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.detail || "Failed to add clothing");
+    const errorData = await response.json();
+    console.error("Erreur API:", errorData);
+
+    // Gestion des erreurs de validation FastAPI
+    if (errorData.detail && Array.isArray(errorData.detail)) {
+      // Format des erreurs de validation FastAPI
+      const errorMessages = errorData.detail
+        .map((err: any) => `${err.loc.join(".")}: ${err.msg}`)
+        .join(", ");
+      throw new Error(errorMessages);
+    } else if (typeof errorData.detail === "string") {
+      // Message d'erreur simple
+      throw new Error(errorData.detail);
+    } else if (errorData.detail) {
+      // Autre format d'erreur
+      throw new Error(JSON.stringify(errorData.detail));
+    } else {
+      // Erreur générique
+      throw new Error(
+        "Échec de l'ajout du vêtement. Veuillez vérifier vos données."
+      );
+    }
   }
 
   return response.json();
